@@ -628,22 +628,14 @@ class _SoftwareWebViewScreenState extends State<SoftwareWebViewScreen> with Widg
       try {
         String jsCode = '''
     async function injectBarcode() {
+      const activeElement = document.activeElement;
+      const inputs = document.querySelectorAll('input[type="text"], input[type="search"], input[type="number"], textarea');
+      const targetInput = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') 
+        ? activeElement 
+        : inputs.length > 0 ? inputs[0] : null;
 
-      // New Vincent Code Start: 03-13-2026
-      const targetInput = document.getElementById('checkLotInput');
-      // New Vincent Code End: 03-13-2026
+      if (!targetInput) return 'no_input_found';
 
-      // const activeElement = document.activeElement;
-      // const inputs = document.querySelectorAll('input[type="text"], input[type="search"], input[type="number"], textarea');
-      // const targetInput = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') 
-      //   ? activeElement 
-      //   : inputs.length > 0 ? inputs[0] : null;
-
-      if (!targetInput) {
-        console.error('checkLotInput not found');
-        return 'no_input_found';
-      }
-      
       // Focus and set value
       targetInput.focus();
       targetInput.value = '$barcode';
@@ -1075,6 +1067,76 @@ class _SoftwareWebViewScreenState extends State<SoftwareWebViewScreen> with Widg
                                   iconSize: 28,
                                   onPressed: () {
                                     _showInputMethodPicker();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: _currentLanguageFlag == 2 ? 58.0 : 46.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  _currentLanguageFlag == 2
+                                      ? 'メモ'
+                                      : 'Memo',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 15),
+                                IconButton(
+                                  icon: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFFE91E63),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 4,
+                                          offset: Offset(2, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.identity()..scale(-1.0, 1.0),
+                                      child: Icon(
+                                        Icons.mode_comment_outlined,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    // Close the drawer first
+                                    Navigator.of(context).pop();
+
+                                    if (webViewController != null) {
+                                      try {
+                                        await webViewController!.evaluateJavascript(
+                                          source: "document.getElementById('memoBtn').click();",
+                                        );
+                                      } catch (e) {
+                                        Fluttertoast.showToast(
+                                          msg: _currentLanguageFlag == 2
+                                              ? "メモボタンをクリックできませんでした"
+                                              : "Could not click memo button",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                        );
+                                      }
+                                    }
                                   },
                                 ),
                               ],
